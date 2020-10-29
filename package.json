@@ -1,0 +1,31 @@
+{
+  "name": "todo_webapp",
+  "version": "1.0.0",
+  "description": "TODO Webapp written in NodeJS bundled with Webpack.",
+  "private": true,
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack serve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yupiel/todo_webapp.git"
+  },
+  "author": "Stefan Mitrovic <@Yupiel>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yupiel/todo_webapp/issues"
+  },
+  "homepage": "https://github.com/yupiel/todo_webapp#readme",
+  "devDependencies": {
+    "css-loader": "^5.0.0",
+    "file-loader": "^6.2.0",
+    "html-loader": "^1.3.2",
+    "html-webpack-plugin": "^4.5.0",
+    "path": "^0.12.7",
+    "style-loader": "^2.0.0",
+    "webpack": "^5.3.1",
+    "webpack-cli": "^4.1.0",
+    "webpack-dev-server": "^3.11.0"
+  }
+}

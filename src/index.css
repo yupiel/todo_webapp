@@ -1,0 +1,28 @@
+.content {
+    max-width: 25%;
+    margin: auto;
+}
+
+.content__title {
+    text-align: center;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 800;
+    line-height: 80%;
+}
+
+.content__addtask {
+    float: right;
+    height: 50px;
+    width: 50px;
+    margin-right: -28px;
+    background: url(../img/add_new.png) no-repeat;
+    background-size: cover;
+}
+
+.content--clearfloat {
+    clear: both;
+}
+
+.content__tasklist {
+    margin-top: 10px;
+}

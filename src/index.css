@@ -26,3 +26,120 @@
 .content__tasklist {
     margin-top: 10px;
 }
+
+.content__task {
+    width: 100%;
+    border-style: solid;
+    border-color: #d3d3d3;
+    margin-bottom: 15px;
+    display: inline-block;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-right: 10px;
+    padding-left: 10px;
+}
+
+.content__taskname {
+    float: left;
+    max-width: 55%;
+    margin-top: 5px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+    border-top-style: hidden;
+    border-right-style: hidden;
+    border-left-style: hidden;
+    border-bottom-style: hidden;
+}
+
+.content__taskimportance {
+    float: left;
+    height: 30px;
+    width: 30px;
+    margin-left: 10px;
+}
+
+.content__taskimportance--high {
+    background: url(../img/high_priority.png);
+    background-size: cover;
+}
+
+.content__taskimportance--medium {
+    background: url(../img/medium_priority.png);
+    background-size: cover;
+}
+
+.content__taskimportance--low {
+    background: url(../img/low_priority.png);
+    background-size: cover;
+}
+
+.content__taskdone {
+    float: right;
+    border: none;
+    height: 30px;
+    width: 30px;
+    margin-right: 10px;
+}
+
+.content__taskdone--false {
+    background-image: url(../img/not_done.png);
+    background-size: cover;
+}
+
+.content__taskdone--true {
+    background-image: url(../img/done.png);
+    background-size: cover;
+}
+
+.content__taskmenutoggle {
+    float: right;
+    height: 30px;
+    width: 30px;
+}
+
+.content__taskmenutoggle--closed {
+    background: url(../img/menu_closed.png);
+    background-size: cover;
+}
+
+.content__taskmenutoggle--open {
+    background: url(../img/menu_open.png);
+    background-size: cover;
+}
+
+.content__taskdescription {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+    border-top-style: hidden;
+    border-right-style: hidden;
+    border-left-style: hidden;
+    border-bottom-style: hidden;
+    background-color: #f5f6fa;
+
+    width: 90%;
+    margin-top: 10px;
+    padding: 5px;
+
+    resize: none;
+}
+
+.content__taskchanger {
+    height: 40px;
+    width: 40px;
+    float: left;
+    margin-right: 10px;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.content__taskdelete {
+    height: 40px;
+    width: 40px;
+    float: right;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    margin-right: -5px;
+
+    background: url(../img/delete.png);
+    background-size: cover;
+}

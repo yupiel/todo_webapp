@@ -27,76 +27,89 @@ class ListView {
         this.updateTasklist();
     }
 
-    subscribeToUIEvents() {
-        $('.content__addtask').on('click', () => this.createNewTask());
-        $(document).on('click', '.content__taskmenutoggle', (event) => this.toggleTaskMenu(event.target));
-        $(document).on('click', '.content__taskdelete', (event) => this.deleteTask(event.target));
-
-        //Visual sugar
-        $(document).on('input', '.content__taskname', (event) => this.resizeInputField(event.target));
-    }
-
     createNewTask() {
         //Create Task as default
         let defaultTaskTemplate = new Task('', '', 2, false, this.taskController.getAmountOfSavedTasks() + 1);
         let defaultTaskTemplateUIElement = this.taskObjectToHTML(defaultTaskTemplate);
 
-        this.subscribeTaskToSaveTaskEvent(defaultTaskTemplateUIElement, defaultTaskTemplate.taskID);
+        //Subscribe Task to all Task Events
+        this.subscribeTaskToTaskEvents(defaultTaskTemplateUIElement, defaultTaskTemplate.taskID);
 
-        //Append to ListView
+        //Add to beginning of ListView
         $('.content__tasklist').prepend(defaultTaskTemplateUIElement);
         $('.content__tasklist').children('.content__task').first().children('.content__taskmenutoggle').trigger('click');
     }
 
     toggleTaskMenu(target) {
-        //Make Content Editable
-        if ($(target).hasClass('content__taskmenutoggle--closed')) {
-            $(target).parent('.content__task').children('.content__taskname').attr('disabled', false);
-        }
-        else if ($(target).hasClass('content__taskmenutoggle--open')) {
-            //Input validation
-            let targetTaskObject = this.taskObjectFromHTML($(target).parent('.content__task'));
-            if (targetTaskObject.taskName == '') {
-                alert('Task Name cannot be empty!');
-                return;
-            }
-            else {
-                $(target).parent('.content__task').children('.content__taskname').attr('disabled', true);
-            }
-        }
-
-        if ($(target).hasClass('content__taskmenutoggle--open')) //Trigger save event if menu is open
-            $(target).triggerHandler('saveTask');
-
+        this.toggleEditing(target);
         $(target).siblings('.content__taskmenu').slideToggle('slow');
         $(target).toggleClass('content__taskmenutoggle--closed content__taskmenutoggle--open');
+
+        if ($(target).hasClass('content__taskmenutoggle--closed')) //Trigger save event AFTER menu has been closed
+            $(target).triggerHandler('saveTask');   //Used here instead of .on() event to ensure event order
     }
 
-    deleteTask(target) {
-        $(target).parent('.content__taskmenu').parent('.content__task').remove();
+    toggleEditing(target) {
+        if ($(target).hasClass('content__taskmenutoggle--closed'))
+            $(target).parent('.content__task').children('.content__taskname').attr('disabled', false);
+        else if ($(target).hasClass('content__taskmenutoggle--open'))
+            $(target).parent('.content__task').children('.content__taskname').attr('disabled', true);
     }
 
     updateTasklist() {
         this.taskController.getAllSavedTasks().forEach(task => {
             let taskFromList = this.taskObjectToHTML(task);
-            this.subscribeTaskToSaveTaskEvent(taskFromList, task.taskID);
-            
+            this.subscribeTaskToTaskEvents(taskFromList, task.taskID);
+
             $('.content__tasklist').prepend(taskFromList);
         });
     }
 
-    subscribeTaskToSaveTaskEvent(taskHTMLElement, originalTaskID){
-        $(taskHTMLElement).children('.content__taskmenutoggle').on('saveTask', (event) => {    //Subscribe to
+    //#region Events and Event Helpers
+
+    subscribeToUIEvents() {
+        //Globally available events without order
+        $('.content__addtask').on('click', () => this.createNewTask());
+        $(document).on('click', '.content__taskmenutoggle', (event) => this.toggleTaskMenu(event.target));
+        $(document).on('click', '.content__taskdelete', (event) => $(event.target).triggerHandler('deleteTask'));
+
+        //Visual sugar
+        $(document).on('input', '.content__taskname', (event) => this.resizeInputField(event.target));
+    }
+
+    subscribeTaskToTaskEvents(taskHTMLElement, originalTaskID) {
+        this.subscribeTaskToSaveTaskEvent(taskHTMLElement, originalTaskID);
+        this.subscribeTaskToDeleteTaskEvent(taskHTMLElement, originalTaskID);
+    }
+
+    subscribeTaskToSaveTaskEvent(taskHTMLElement, originalTaskID) {
+        $(taskHTMLElement).children('.content__taskmenutoggle').on('saveTask', (event) => {
             let targetTask = $(event.target).parent('.content__task');
-            let saveTaskObject = this.taskObjectFromHTML(targetTask); 
+            let saveTaskObject = this.taskObjectFromHTML(targetTask);
             saveTaskObject.taskID = originalTaskID;
+
+            if (saveTaskObject.taskName == '') {    //visual level input validation
+                alert('Task Name cannot be empty!');
+                this.toggleTaskMenu(event.target);
+                return;
+            }
 
             this.taskController.saveTaskInList(saveTaskObject);
         });
     }
 
-    //HELPERS
+    subscribeTaskToDeleteTaskEvent(taskHTMLElement, originalTaskID) {
+        $(taskHTMLElement).children('.content__taskmenu').children('.content__taskdelete').on('deleteTask', (event) => {
+            if (this.taskController.taskIDExists(originalTaskID))           //Delete Task from the saved task lists if it exists
+                this.taskController.deleteTaskFromList(originalTaskID);
+            //Delete Visual Element of task
+            let targetTask = $(event.target).parent('.content__taskmenu').parent('.content__task');
+            $(targetTask).remove();
+        });
+    }
+    //#endregion
 
+    //#region Converters
     /**
      * Fills Task Object's information into a Task Template
      * @param {Task} taskObject 
@@ -150,8 +163,10 @@ class ListView {
 
         return new Task(taskName, taskDescription, taskImportance, taskIsDone);
     }
+    //#endregion
 
-    resizeInputField(target) {  //Visual sugar for adaptable size input
+    //Visual sugar
+    resizeInputField(target) {
         $(target).css({ 'width': $(target).val().length + 'ch' });
     }
 }

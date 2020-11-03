@@ -7,7 +7,8 @@ import ListView from './ListView.js';
 import TaskController from './TaskController.js';
 
 $(function () {
-    let model = new Task()
-    let listView = new ListView(model);
-    let controller = new TaskController(model, listView);
+    let tasks = [new Task('Test Task', 'Test Description', 3, true, 1)]
+
+    let controller = new TaskController(tasks);
+    let listView = new ListView(controller);
 })

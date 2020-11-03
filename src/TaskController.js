@@ -2,23 +2,33 @@ import $ from 'jquery';
 import Task from './Task';
 
 class TaskController {
-    constructor(taskModel, listView) {
-        this.taskModel = taskModel;
-        this.listView = listView;
-
-        this.taskList = [new Task('Test Task', 'Test Description', 3, true)]
-
-        $(document).on('saveTask', (event, task) => this.saveTaskInList(task));  //Subscribing to Save Task Event
-        listView.updateTasklist(this.taskList);
+    constructor(tasks) {
+        this.tasks = tasks;
     }
 
     getAllSavedTasks() {
-        return this.taskList;
+        return this.tasks;
+    }
+
+    getAmountOfSavedTasks() {
+        return this.tasks.length;
     }
 
     saveTaskInList(task) {   //Processing Save Task Event
-        this.taskList.push(task);
-        console.dir(this.taskList);
+        let edited = false;
+
+        for (let i = 0; i < this.tasks.length; i++) {
+            const savedTask = this.tasks[i];
+            if (savedTask.taskID == task.taskID && savedTask != task) {   //If task ID is already in list, edit task
+                this.tasks[i] = task;
+                edited = true;
+            }
+        }
+
+        if (!edited)
+            this.tasks.push(task);                                      //Otherwise save as new Task
+
+        console.dir(this.tasks);
     }
 }
 

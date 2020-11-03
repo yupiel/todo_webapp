@@ -7,12 +7,15 @@ class Task {
      * @param {string} taskDescription Description of max 240 characters
      * @param {number} taskImportance 1(low), 2(medium), 3(high) Importance
      * @param {boolean} taskIsDone Done status for checkbox 
+     * @param {number} taskID ID for task
      */
-    constructor(taskName, taskDescription, taskImportance, taskIsDone) {
+    constructor(taskName, taskDescription, taskImportance, taskIsDone, taskID = undefined) {
         this.taskName = taskName;
         this.taskDescription = taskDescription;
         this.taskIsDone = taskIsDone;
         this.taskImportance = taskImportance;
+
+        this.taskID = taskID;
     }
 }
 

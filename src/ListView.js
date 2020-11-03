@@ -2,9 +2,8 @@ import $ from 'jquery';
 import Task from './Task.js'
 
 class ListView {
-    constructor(taskModel) {
-        console.log('ListView Constructor');
-        this.taskModel = taskModel;
+    constructor(taskController) {
+        this.taskController = taskController;
 
         this.taskTemplate = $.parseHTML(`
             <div class='content__task'> 
@@ -25,24 +24,27 @@ class ListView {
             `);
 
         this.subscribeToUIEvents();
+        this.updateTasklist();
     }
 
     subscribeToUIEvents() {
         $('.content__addtask').on('click', () => this.createNewTask());
         $(document).on('click', '.content__taskmenutoggle', (event) => this.toggleTaskMenu(event.target));
-        $(document).on('click', '.content__taskdelete', (event) => this.deleteTask(event.target))
+        $(document).on('click', '.content__taskdelete', (event) => this.deleteTask(event.target));
 
         //Visual sugar
         $(document).on('input', '.content__taskname', (event) => this.resizeInputField(event.target));
     }
 
     createNewTask() {
-        let defaultTaskTemplate = $(this.taskTemplate).clone();
-        //Set Defaults in Task Template
-        $(defaultTaskTemplate).children('.content__taskimportance').addClass('content__taskimportance--medium');
-        $(defaultTaskTemplate).children('.content__taskdone').addClass('content__taskdone--false');
+        //Create Task as default
+        let defaultTaskTemplate = new Task('', '', 2, false, this.taskController.getAmountOfSavedTasks() + 1);
+        let defaultTaskTemplateUIElement = this.taskObjectToHTML(defaultTaskTemplate);
 
-        $('.content__tasklist').prepend(defaultTaskTemplate);
+        this.subscribeTaskToSaveTaskEvent(defaultTaskTemplateUIElement, defaultTaskTemplate.taskID);
+
+        //Append to ListView
+        $('.content__tasklist').prepend(defaultTaskTemplateUIElement);
         $('.content__tasklist').children('.content__task').first().children('.content__taskmenutoggle').trigger('click');
     }
 
@@ -59,12 +61,12 @@ class ListView {
                 return;
             }
             else {
-                //Disable Input Fields
                 $(target).parent('.content__task').children('.content__taskname').attr('disabled', true);
-                //Dispatch Save Task Event
-                $(target).trigger('saveTask', targetTaskObject);
             }
         }
+
+        if ($(target).hasClass('content__taskmenutoggle--open')) //Trigger save event if menu is open
+            $(target).triggerHandler('saveTask');
 
         $(target).siblings('.content__taskmenu').slideToggle('slow');
         $(target).toggleClass('content__taskmenutoggle--closed content__taskmenutoggle--open');
@@ -74,9 +76,22 @@ class ListView {
         $(target).parent('.content__taskmenu').parent('.content__task').remove();
     }
 
-    updateTasklist(tasklist){
-        tasklist.forEach(task => {
-            $('.content__tasklist').prepend(this.taskObjectToHTML(task));
+    updateTasklist() {
+        this.taskController.getAllSavedTasks().forEach(task => {
+            let taskFromList = this.taskObjectToHTML(task);
+            this.subscribeTaskToSaveTaskEvent(taskFromList, task.taskID);
+            
+            $('.content__tasklist').prepend(taskFromList);
+        });
+    }
+
+    subscribeTaskToSaveTaskEvent(taskHTMLElement, originalTaskID){
+        $(taskHTMLElement).children('.content__taskmenutoggle').on('saveTask', (event) => {    //Subscribe to
+            let targetTask = $(event.target).parent('.content__task');
+            let saveTaskObject = this.taskObjectFromHTML(targetTask); 
+            saveTaskObject.taskID = originalTaskID;
+
+            this.taskController.saveTaskInList(saveTaskObject);
         });
     }
 
@@ -104,13 +119,13 @@ class ListView {
                 importanceCSSClass = 'content__taskimportance--high';
                 break;
             default:
-                throw new Error(`Importance for taskObject ${taskObject} could not be assigned.`);
+                throw new Error(`Importance for taskObject ${taskName} could not be assigned.`);
         }
-        $(filledTaskTemplate).children('.content__taskimportance').addClass(importanceCSSClass);                    //add actual
-        
+        $(filledTaskTemplate).children('.content__taskimportance').addClass(importanceCSSClass);
+
         $(filledTaskTemplate).children('.content__taskdone').addClass(taskObject.taskIsDone ? 'content__taskdone--true' : 'content__taskdone--false');
 
-        return filledTaskTemplate;
+        return $(filledTaskTemplate);
     }
 
     taskObjectFromHTML(taskHTML) {
@@ -128,7 +143,7 @@ class ListView {
             taskImportance = 3;
         }
         else {
-            throw new Error(`Importance for taskObject ${taskObject} could not be retrieved.`);
+            throw new Error(`Importance for taskObject ${taskName} could not be retrieved.`);
         }
 
         $(taskHTML).children('.content__taskdone').hasClass('content__taskdone--true') ? taskIsDone = true : taskIsDone = false;

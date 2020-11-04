@@ -1,4 +1,5 @@
 import $ from 'jquery';
+import {v4} from 'uuid';
 
 class Task {
     /**
@@ -9,13 +10,13 @@ class Task {
      * @param {boolean} taskIsDone Done status for checkbox 
      * @param {number} taskID ID for task
      */
-    constructor(taskName, taskDescription, taskImportance, taskIsDone) {
+    constructor(taskName = null, taskDescription, taskImportance, taskIsDone, taskID = null) {
         this.taskName = taskName;
         this.taskDescription = taskDescription;
         this.taskIsDone = taskIsDone;
         this.taskImportance = taskImportance;
 
-        this.taskID = this.generateUUID();
+        this.taskID = taskID || this.generateUUID();
     }
 
     get name() {
@@ -34,7 +35,8 @@ class Task {
         this.taskDescription = desc;
     }
 
-    /** Task importance between 1 and 3 (low to high)
+    /** 
+     * Task importance between 1 and 3 (low to high)
      */
     get importance() {
         return this.taskImportance;
@@ -57,11 +59,11 @@ class Task {
     }
 
     set ID(id) {
-        this.taskID == id;
+        
     }
 
     generateUUID() {
-
+        return v4();
     }
 }
 

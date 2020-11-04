@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import Task from './Task.js'
+import Task from '../models/Task.js'
 
 class ListView {
     constructor(taskController) {
@@ -7,19 +7,19 @@ class ListView {
 
         this.taskTemplate = $.parseHTML(`
             <div class='content__task'> 
-                <input type='text' class='content__taskname' placeholder='Task Name' disabled=true maxlength='24'/>
+                <input type='text' class='content__taskname' placeholder='Task Name' contenteditable=true maxlength='24'/>
                 <span class='content__taskimportance'></span> 
                 <span class='content__taskmenutoggle content__taskmenutoggle--closed'></span>
                 <span class='content__taskdone'></span>
                 <div class='content--clearfloat'></div> 
                 <div class='content__taskmenu' style='display: none;'>
-                    <textarea rows='5' class='content__taskdescription' placeholder='Task Description' maxlength='240'></textarea>
+                    <textarea rows='5' class='content__taskdescription' placeholder='Task Description' contenteditable=true maxlength='240'></textarea>
                     <div class='content--clearfloat'></div>
                     <span class='content__taskchanger content__taskimportance--low'></span>
                     <span class='content__taskchanger content__taskimportance--medium'></span>
                     <span class='content__taskchanger content__taskimportance--high'></span>
                     <span class='content__taskdelete content__taskdelete--deletetask'></span>
-                    <span class='content__taskedit content__taskedit--startedit'></span>
+                    <span class='content__taskedit'></span>
                 </div>
             </div>
             `);
@@ -30,8 +30,10 @@ class ListView {
 
     createNewTask() {
         //Create Task with default values
-        let defaultTaskTemplate = this.taskController.createNewTask('', '', 2, false);
+        let defaultTaskTemplate = new Task('', '', 2, false);
         let defaultTaskTemplateUIElement = this.taskObjectToHTML(defaultTaskTemplate);
+        //Add Save new button
+        $(defaultTaskTemplateUIElement).children('.content__taskmenu').children('.content__taskedit').addClass('content__taskedit--savenew');
 
         //Subscribe Task to all Task Events
         this.subscribeTaskToTaskEvents(defaultTaskTemplateUIElement, defaultTaskTemplate.ID);
@@ -42,24 +44,47 @@ class ListView {
     }
 
     toggleTaskMenu(target) {
-        this.toggleEditing(target);
         $(target).siblings('.content__taskmenu').slideToggle('slow');
         $(target).toggleClass('content__taskmenutoggle--closed content__taskmenutoggle--open');
+    }
 
-        if ($(target).hasClass('content__taskmenutoggle--closed')) //Trigger save event AFTER menu has been closed
-            $(target).triggerHandler('saveTask');   //Used here instead of .on() event to ensure event order
+    toggleEditingButtons(target) {
+        if (!$(target).hasClass('content__taskedit--savenew')) {
+            //Toggle Start Edit button and Save Changes button
+            $(target).toggleClass('content__taskedit--startedit content__taskedit--saveedit');
+        }
+        else {
+            //Remove "new" status from target task subview
+            $(target).removeClass('content__taskedit--savenew');
+            $(target).addClass('content__taskedit--startedit');
+        }
     }
 
     toggleEditing(target) {
-        if ($(target).hasClass('content__taskmenutoggle--closed'))
-            $(target).parent('.content__task').children('.content__taskname').attr('disabled', false);
-        else if ($(target).hasClass('content__taskmenutoggle--open'))
-            $(target).parent('.content__task').children('.content__taskname').attr('disabled', true);
+        const targetTask = $(target).parent('.content__taskmenu').parent('.content__task');
+
+        //Toggle Editing for text fields
+        if ($(target).hasClass('content__taskedit--startedit')) {
+            $(targetTask).children('.content__taskname').attr('disabled', true);
+            $(targetTask).children('.content__taskmenu').children('.content__taskdescription').attr('disabled', true);
+        }
+        else if ($(target).hasClass('content__taskedit--saveedit')) {
+            $(targetTask).children('.content__taskname').attr('disabled', false);
+            $(targetTask).children('.content__taskmenu').children('.content__taskdescription').attr('disabled', false);
+        }
+        else if ($(target).hasClass('content__taskedit--savenew')) {
+            $(targetTask).children('.content__taskname').attr('disabled', true);
+            $(targetTask).children('.content__taskmenu').children('.content__taskdescription').attr('disabled', true);
+        }
     }
 
     updateTasklist() {
         this.taskController.getAllSavedTasks().forEach(task => {
             let taskFromList = this.taskObjectToHTML(task);
+            //Add Editing button for task
+            $(taskFromList).children('.content__taskmenu').children('.content__taskedit').addClass('content__taskedit--startedit');
+            this.toggleEditing($(taskFromList).children('.content__taskmenu').children('.content__taskedit'));
+
             this.subscribeTaskToTaskEvents(taskFromList, task.ID);
 
             $('.content__tasklist').prepend(taskFromList);
@@ -69,10 +94,30 @@ class ListView {
     //#region Events and Event Helpers
 
     subscribeToUIEvents() {
-        //Globally available events without order
+        //Creation Event
         $('.content__addtask').on('click', () => this.createNewTask());
+
+        //Taskmenu Toggling Event
         $(document).on('click', '.content__taskmenutoggle', (event) => this.toggleTaskMenu(event.target));
-        $(document).on('click', '.content__taskdelete', (event) => $(event.target).triggerHandler('deleteTask'));
+
+        //Delete Button Events
+        $(document).on('click', '.content__taskdelete--deletetask', (event) => $(event.target).triggerHandler('discardDeleteTask'));
+
+        //Edit Button Events
+        $(document).on('click', '.content__taskedit--startedit', (event) => {
+            this.toggleEditingButtons(event.target);
+            this.toggleEditing(event.target);
+        });
+        $(document).on('click', '.content__taskedit--saveedit', (event) => {
+            this.toggleEditingButtons(event.target);
+            this.toggleEditing(event.target);
+            $(event.target).triggerHandler('saveTaskChanges');
+        });
+        $(document).on('click', '.content__taskedit--savenew', (event) => {
+            this.toggleEditingButtons(event.target);
+            this.toggleEditing(event.target);
+            $(event.target).triggerHandler('saveNewTask');
+        });
 
         //Visual sugar
         $(document).on('input', '.content__taskname', (event) => this.resizeInputField(event.target));
@@ -80,34 +125,44 @@ class ListView {
 
     subscribeTaskToTaskEvents(taskHTMLElement, originalTaskID) {
         this.subscribeTaskToSaveNewTaskEvent(taskHTMLElement, originalTaskID);
+        this.subscribeTaskToSaveTaskChangesEvent(taskHTMLElement, originalTaskID);
         this.subscribeTaskToDeleteTaskEvent(taskHTMLElement, originalTaskID);
     }
 
     subscribeTaskToSaveNewTaskEvent(taskHTMLElement, originalTaskID) {
-        $(taskHTMLElement).children('.content__taskmenutoggle').on('saveNewTask', (event) => {
-            let targetTaskView = $(event.target).parent('.content__task');
+        $(taskHTMLElement).children('.content__taskmenu').children('.content__taskedit').on('saveNewTask', (event) => {
+            let targetTaskView = $(event.target).parent('.content__taskmenu').parent('.content__task');
             let saveTaskModel = this.taskObjectFromHTML(targetTaskView);
             saveTaskModel.ID = originalTaskID;
 
             //TODO: Better Input validation => (Controller)
-            if (saveTaskModel.name == '') {    //visual level input validation
-                alert('Task Name cannot be empty!');
-                this.toggleTaskMenu(event.target);
+            if (saveTaskModel.name == null || saveTaskModel.name == '') {
+                alert('Task Name cannot be empty');
+                this.toggleTaskMenu($(targetTaskView).children('.content__taskmenu'));
                 return;
             }
 
-            this.taskController.saveTask(saveTaskModel);
+            this.taskController.saveNewTask(saveTaskModel);
         });
     }
 
     subscribeTaskToSaveTaskChangesEvent(taskHTMLElement, originalTaskID) {
-        $(taskHTMLElement).children('.content__taskmenutoggle').on('saveTaskChanges', (event) => {
-            //TODO: Change class to save edit button
+        $(taskHTMLElement).children('.content__taskmenu').children('.content__taskedit').on('saveTaskChanges', (event) => {
+            let targetTaskView = $(event.target).parent('.content__taskmenu').parent('.content__task');
+            let saveTaskModel = this.taskObjectFromHTML(targetTaskView);
+            let editedTask = new Task(saveTaskModel.name, saveTaskModel.description, saveTaskModel.importance, saveTaskModel.isDone, originalTaskID);
+
+            if (editedTask.name == null || editedTask.name == '') {
+                alert('Task Name cannot be empty');
+                return;
+            }
+
+            this.taskController.saveTaskChanges(editedTask);
         })
     }
 
     subscribeTaskToDeleteTaskEvent(taskHTMLElement, originalTaskID) {
-        $(taskHTMLElement).children('.content__taskmenu').children('.content__taskdelete').on('deleteTask', (event) => {
+        $(taskHTMLElement).children('.content__taskmenu').children('.content__taskdelete').on('discardDeleteTask', (event) => {
             this.taskController.deleteTask(originalTaskID);
 
             //Delete Visual Element of task

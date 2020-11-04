@@ -143,19 +143,19 @@
     background: url(../img/delete.png);
     background-size: cover;
 }
-
+/*
 .content__taskdelete--discardchanges {
     background: url(../img/discard_changes.png);
     background-size: cover;
-}
+}*/
 
 .content__taskedit {
     height: 40px;
     width: 40px;
     float: right;
-    margin-top: 18px;
     margin-bottom: 5px;
     margin-right: 10px;
+    margin-top: 15px;
 }
 
 .content__taskedit--startedit {
@@ -164,6 +164,11 @@
 }
 
 .content__taskedit--saveedit {
+    background: url(../img/save.png);
+    background-size: cover;
+}
+
+.content__taskedit--savenew {
     background: url(../img/save.png);
     background-size: cover;
 }

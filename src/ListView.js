@@ -18,7 +18,8 @@ class ListView {
                     <span class='content__taskchanger content__taskimportance--low'></span>
                     <span class='content__taskchanger content__taskimportance--medium'></span>
                     <span class='content__taskchanger content__taskimportance--high'></span>
-                    <span class='content__taskdelete'></span>
+                    <span class='content__taskdelete content__taskdelete--deletetask'></span>
+                    <span class='content__taskedit content__taskedit--startedit'></span>
                 </div>
             </div>
             `);
@@ -28,12 +29,12 @@ class ListView {
     }
 
     createNewTask() {
-        //Create Task as default
-        let defaultTaskTemplate = new Task('', '', 2, false, this.taskController.getAmountOfSavedTasks() + 1);
+        //Create Task with default values
+        let defaultTaskTemplate = this.taskController.createNewTask('', '', 2, false);
         let defaultTaskTemplateUIElement = this.taskObjectToHTML(defaultTaskTemplate);
 
         //Subscribe Task to all Task Events
-        this.subscribeTaskToTaskEvents(defaultTaskTemplateUIElement, defaultTaskTemplate.taskID);
+        this.subscribeTaskToTaskEvents(defaultTaskTemplateUIElement, defaultTaskTemplate.ID);
 
         //Add to beginning of ListView
         $('.content__tasklist').prepend(defaultTaskTemplateUIElement);
@@ -59,7 +60,7 @@ class ListView {
     updateTasklist() {
         this.taskController.getAllSavedTasks().forEach(task => {
             let taskFromList = this.taskObjectToHTML(task);
-            this.subscribeTaskToTaskEvents(taskFromList, task.taskID);
+            this.subscribeTaskToTaskEvents(taskFromList, task.ID);
 
             $('.content__tasklist').prepend(taskFromList);
         });
@@ -78,30 +79,37 @@ class ListView {
     }
 
     subscribeTaskToTaskEvents(taskHTMLElement, originalTaskID) {
-        this.subscribeTaskToSaveTaskEvent(taskHTMLElement, originalTaskID);
+        this.subscribeTaskToSaveNewTaskEvent(taskHTMLElement, originalTaskID);
         this.subscribeTaskToDeleteTaskEvent(taskHTMLElement, originalTaskID);
     }
 
-    subscribeTaskToSaveTaskEvent(taskHTMLElement, originalTaskID) {
-        $(taskHTMLElement).children('.content__taskmenutoggle').on('saveTask', (event) => {
-            let targetTask = $(event.target).parent('.content__task');
-            let saveTaskObject = this.taskObjectFromHTML(targetTask);
-            saveTaskObject.taskID = originalTaskID;
+    subscribeTaskToSaveNewTaskEvent(taskHTMLElement, originalTaskID) {
+        $(taskHTMLElement).children('.content__taskmenutoggle').on('saveNewTask', (event) => {
+            let targetTaskView = $(event.target).parent('.content__task');
+            let saveTaskModel = this.taskObjectFromHTML(targetTaskView);
+            saveTaskModel.ID = originalTaskID;
 
-            if (saveTaskObject.taskName == '') {    //visual level input validation
+            //TODO: Better Input validation => (Controller)
+            if (saveTaskModel.name == '') {    //visual level input validation
                 alert('Task Name cannot be empty!');
                 this.toggleTaskMenu(event.target);
                 return;
             }
 
-            this.taskController.saveTaskInList(saveTaskObject);
+            this.taskController.saveTask(saveTaskModel);
         });
+    }
+
+    subscribeTaskToSaveTaskChangesEvent(taskHTMLElement, originalTaskID) {
+        $(taskHTMLElement).children('.content__taskmenutoggle').on('saveTaskChanges', (event) => {
+            //TODO: Change class to save edit button
+        })
     }
 
     subscribeTaskToDeleteTaskEvent(taskHTMLElement, originalTaskID) {
         $(taskHTMLElement).children('.content__taskmenu').children('.content__taskdelete').on('deleteTask', (event) => {
-            if (this.taskController.taskIDExists(originalTaskID))           //Delete Task from the saved task lists if it exists
-                this.taskController.deleteTaskFromList(originalTaskID);
+            this.taskController.deleteTask(originalTaskID);
+
             //Delete Visual Element of task
             let targetTask = $(event.target).parent('.content__taskmenu').parent('.content__task');
             $(targetTask).remove();
@@ -117,11 +125,11 @@ class ListView {
      */
     taskObjectToHTML(taskObject) {
         let filledTaskTemplate = $(this.taskTemplate).clone();
-        $(filledTaskTemplate).children('.content__taskname').val(taskObject.taskName);
-        $(filledTaskTemplate).children('.content__taskmenu').children('.content__taskdescription').val(taskObject.taskDescription);
+        $(filledTaskTemplate).children('.content__taskname').val(taskObject.name);
+        $(filledTaskTemplate).children('.content__taskmenu').children('.content__taskdescription').val(taskObject.description);
 
         let importanceCSSClass = '';
-        switch (taskObject.taskImportance) {
+        switch (taskObject.importance) {
             case 1:
                 importanceCSSClass = 'content__taskimportance--low';
                 break;
@@ -136,7 +144,7 @@ class ListView {
         }
         $(filledTaskTemplate).children('.content__taskimportance').addClass(importanceCSSClass);
 
-        $(filledTaskTemplate).children('.content__taskdone').addClass(taskObject.taskIsDone ? 'content__taskdone--true' : 'content__taskdone--false');
+        $(filledTaskTemplate).children('.content__taskdone').addClass(taskObject.isDone ? 'content__taskdone--true' : 'content__taskdone--false');
 
         return $(filledTaskTemplate);
     }
@@ -161,7 +169,7 @@ class ListView {
 
         $(taskHTML).children('.content__taskdone').hasClass('content__taskdone--true') ? taskIsDone = true : taskIsDone = false;
 
-        return new Task(taskName, taskDescription, taskImportance, taskIsDone);
+        return this.taskController.createNewTask(taskName, taskDescription, taskImportance, taskIsDone);
     }
     //#endregion
 

@@ -14,21 +14,16 @@ class TaskController {
         return this.tasks.length;
     }
 
-    taskIDExists(taskID) {
-        for (let i = 0; i < this.tasks.length; i++) {
-            const savedTask = this.tasks[i];
-            if (savedTask.taskID == taskID)
-                return true;
-        }
-        return false;
+    createNewTask(name, description, importance, done) {
+        return new Task(name, description, importance, done);
     }
 
-    saveTaskInList(task) {   //Processing Save Task Event
+    saveTask(task) {   //Processing Save Task Event
         let edited = false;
 
         for (let i = 0; i < this.tasks.length; i++) {
             const savedTask = this.tasks[i];
-            if (savedTask.taskID == task.taskID && savedTask != task) {     //If task ID is already in list, edit task
+            if (savedTask.taskID == task.ID() && savedTask != task) {     //If task ID is already in list, edit task
                 this.tasks[i] = task;
                 edited = true;
             }
@@ -40,13 +35,13 @@ class TaskController {
         console.dir(this.tasks);
     }
 
-    deleteTaskFromList(taskID) {
+    deleteTask(taskID) {    //TODO: Task exists validation
         let taskIndex;
 
         for (let i = 0; i < this.tasks.length; i++) {
             const task = this.tasks[i];
 
-            if (task.taskID == taskID)
+            if (task.ID() == taskID)
                 taskIndex = i;
         }
 

@@ -1,4 +1,4 @@
-import css from './index.css';
+import css from './style/index.css';
 import html from './index.html';    //imports for webpack
 import $ from 'jquery';
 

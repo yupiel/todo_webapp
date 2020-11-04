@@ -115,11 +115,9 @@
     border-left-style: hidden;
     border-bottom-style: hidden;
     background-color: #f5f6fa;
-
     width: 90%;
     margin-top: 10px;
     padding: 5px;
-
     resize: none;
 }
 
@@ -139,7 +137,33 @@
     margin-top: 15px;
     margin-bottom: 5px;
     margin-right: -5px;
+}
 
+.content__taskdelete--deletetask {
     background: url(../img/delete.png);
+    background-size: cover;
+}
+
+.content__taskdelete--discardchanges {
+    background: url(../img/discard_changes.png);
+    background-size: cover;
+}
+
+.content__taskedit {
+    height: 40px;
+    width: 40px;
+    float: right;
+    margin-top: 18px;
+    margin-bottom: 5px;
+    margin-right: 10px;
+}
+
+.content__taskedit--startedit {
+    background: url(../img/edit.png);
+    background-size: cover;
+}
+
+.content__taskedit--saveedit {
+    background: url(../img/save.png);
     background-size: cover;
 }

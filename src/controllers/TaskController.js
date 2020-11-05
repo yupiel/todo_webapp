@@ -49,6 +49,8 @@ class TaskController {
         }
 
         this.tasks.delete(taskID)
+
+        console.log(`Deleted Task with ID ${taskID}.`);
     }
 }
 

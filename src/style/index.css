@@ -137,17 +137,10 @@
     margin-top: 15px;
     margin-bottom: 5px;
     margin-right: -5px;
-}
 
-.content__taskdelete--deletetask {
     background: url(../img/delete.png);
     background-size: cover;
 }
-/*
-.content__taskdelete--discardchanges {
-    background: url(../img/discard_changes.png);
-    background-size: cover;
-}*/
 
 .content__taskedit {
     height: 40px;

@@ -10,13 +10,13 @@ class Task {
      * @param {boolean} taskIsDone Done status for checkbox 
      * @param {number} taskID ID for task
      */
-    constructor(taskName = null, taskDescription, taskImportance, taskIsDone, taskID = null) {
+    constructor(taskName = null, taskDescription = null, taskImportance = null, taskIsDone = null, taskID = null) {
         this.taskName = taskName;
         this.taskDescription = taskDescription;
         this.taskIsDone = taskIsDone;
         this.taskImportance = taskImportance;
 
-        this.taskID = taskID || this.generateUUID();
+        this.taskID = (taskID === null) ? this.generateUUID() : taskID;
     }
 
     get name() {

@@ -4,7 +4,7 @@ import Task from '../models/Task.js'
 class ListView {
     constructor(taskController) {
         this.taskController = taskController;
-        this.temporaryTask = false;
+        this.hasTemporaryTask = false;
 
         this.taskTemplate = $.parseHTML(`
             <div class='content__task'> 
@@ -39,11 +39,11 @@ class ListView {
         else if (!exist)
             $('.content__addtask').attr('disabled', true);
 
-        this.temporaryTask = exist;
+        this.hasTemporaryTask = exist;
     }
 
-    get temporaryTaskExist(){
-        return this.temporaryTask;
+    get temporaryTaskExist() {
+        return this.hasTemporaryTask;
     }
     //#endregion
 
@@ -91,7 +91,7 @@ class ListView {
         }
     }
 
-    saveNewTaskStateToEditTaskState(target) {
+    toggleSaveButtonState(target) {
         const targetTask = $(target).parent('.content__taskmenu').parent('.content__task');
 
         $(targetTask).children('.content__taskname').attr('disabled', true);
@@ -168,7 +168,7 @@ class ListView {
             }
 
             this.taskController.saveNewTask(saveTaskModel);
-            this.saveNewTaskStateToEditTaskState(taskHTMLElement)
+            this.toggleSaveButtonState(taskHTMLElement)
 
             //On Reloading tasks, unsaved tasks will be deleted automatically
             this.temporaryTaskExist = false;
@@ -196,7 +196,7 @@ class ListView {
         $(taskHTMLElement).children('.content__taskmenu').children('.content__taskdelete').on('discardDeleteTask', (event) => {
             let targetTask = $(event.target).parent('.content__taskmenu').parent('.content__task');
 
-            if (!this.temporaryTask) //Only send deletion request to controller if task isn't a temporary (UI only) one
+            if (!this.hasTemporaryTask) //Only send deletion request to controller if task isn't a temporary (UI only) one
                 this.taskController.deleteTask(originalTaskID);
             if ($(event.target).siblings('.content__taskedit').hasClass('content__taskedit--savenew'))
                 this.temporaryTaskExist = false;
@@ -259,7 +259,7 @@ class ListView {
 
         $(taskHTML).children('.content__taskdone').hasClass('content__taskdone--true') ? taskIsDone = true : taskIsDone = false;
 
-        return this.taskController.createNewTask(taskName, taskDescription, taskImportance, taskIsDone);
+        return new Task(taskName, taskDescription, taskImportance, taskIsDone);
     }
     //#endregion
 

@@ -19,7 +19,15 @@ class TaskController {
     }
 
     saveNewTask(task) {
-        //TODO: input validation
+        //TODO: more input validation
+        if(task.name == null || task.name == ''){
+            console.error(`Task could not be saved as the required field 'name' is empty. ID: ${task.ID}`);
+            return;
+        }
+        if(task.description.length > 240){
+            console.error(`Task descriptions cannot be over 240 charactgers long. ID: ${task.ID}`);
+            return;
+        }
 
         if (this.tasks.has(task.ID)) {
             console.error(`Overwriting Tasks is not permitted. ID: ${task.ID}`);

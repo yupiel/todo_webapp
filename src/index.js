@@ -6,7 +6,7 @@ import Task from './models/Task.js';
 import ListView from './views/ListView.js';
 import TaskController from './controllers/TaskController.js';
 
-$(function () {    
+$(function () {
     let tasks = new Map();
 
     let newTask = new Task('Test Task', 'Test Description', 3, true);

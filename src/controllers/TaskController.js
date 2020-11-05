@@ -10,21 +10,12 @@ class TaskController {
         return this.tasks;
     }
 
-    getAmountOfSavedTasks() {
-        return this.tasks.length;
-    }
-
-    createNewTask(name, description, importance, done) {
-        return new Task(name, description, importance, done);
-    }
-
     saveNewTask(task) {
-        //TODO: more input validation
-        if(task.name == null || task.name == ''){
+        if (task.name == null || task.name == '') {
             console.error(`Task could not be saved as the required field 'name' is empty. ID: ${task.ID}`);
             return;
         }
-        if(task.description.length > 240){
+        if (task.description == null || task.description.length > 240) {
             console.error(`Task descriptions cannot be over 240 charactgers long. ID: ${task.ID}`);
             return;
         }

@@ -4,8 +4,11 @@
   "description": "TODO Webapp written in NodeJS bundled with Webpack.",
   "private": true,
   "scripts": {
-    "build": "webpack",
-    "dev": "webpack serve"
+    "dev": "webpack --config ./webpack.dev.js",
+    "serve-dev": "webpack serve --config ./webpack.dev.js",
+    "prod": "webpack --config ./webpack.prod.js",
+    "serve-prod": "webpack serve --config ./webpack.prod.js",
+    "heroku-postbuild": "webpack --config ./webpack.server.js && webpack --config ./webpack.prod.js"
   },
   "repository": {
     "type": "git",
@@ -26,9 +29,11 @@
     "style-loader": "^2.0.0",
     "webpack": "^5.3.1",
     "webpack-cli": "^4.1.0",
-    "webpack-dev-server": "^3.11.0"
+    "webpack-dev-server": "^3.11.0",
+    "webpack-node-externals": "^2.5.2"
   },
   "dependencies": {
+    "express": "^4.17.1",
     "jquery": "^3.5.1",
     "uuid": "^8.3.1"
   }

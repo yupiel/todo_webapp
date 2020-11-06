@@ -27,13 +27,13 @@ class TaskSubView {
             `);
 
         if (this.taskModel) {
-            this.fromTaskModel(this.taskModel);
+            this.updateTaskHTMLElement(this.taskModel);
         }
         else {
             //Initialize Task with default Values
             this.taskModel = new Task('', '', 2, false);
             console.log('no task passed');
-            this.fromTaskModel(this.taskModel);
+            this.updateTaskHTMLElement(this.taskModel);
         }
     }
 
@@ -52,9 +52,10 @@ class TaskSubView {
         return this.taskElement;
     }
 
+    //#region Button Functionalities
     saveNewTask() {
         //Save data from the HTML of this Task Subview to it's attached Task Model
-        this.toTaskModel();
+        this.updateTaskModel();
 
         if (!this.taskModel.name) {
             alert('Task Name cannot be empty');
@@ -72,7 +73,7 @@ class TaskSubView {
 
     saveTaskChanges() {
         //Save edited data from the HTML of this Task Subview to it's attached Task Model
-        this.toTaskModel();
+        this.updateTaskModel();
 
         if (!this.taskModel.name) {
             alert('Task Name cannot be empty');
@@ -89,7 +90,7 @@ class TaskSubView {
     deleteTask() {
         if (!this.temporaryTask) //Only send deletion request to controller if task isn't a temporary (UI only) one
             this.taskController.deleteTask(this.taskModel.ID);
-        
+
         return true;
     }
 
@@ -100,8 +101,21 @@ class TaskSubView {
         this.toggleDoneButtonState();
         return true;
     }
+
+    changeTaskImportance(newTaskImportance) {
+        if(!newTaskImportance || newTaskImportance < 1 || newTaskImportance > 3){
+            alert(`Task Importance for task ${this.taskModel.ID} in wrong format.`)
+            return false;
+        }
+
+        this.taskModel.importance = newTaskImportance;
+        this.updateTaskImportance(newTaskImportance);
+        this.taskController.changeTaskImportance(this.taskModel.ID, this.taskModel.importance);
+        return true;
+    }
     //#endregion
 
+    //#region UI Changing functions
     toggleTaskMenu() {
         $(this.taskElement).children('.content__taskmenu').slideToggle('slow');
         $(this.taskElement).children('.content__taskmenutoggle').toggleClass('content__taskmenutoggle--closed content__taskmenutoggle--open');
@@ -143,26 +157,23 @@ class TaskSubView {
         $(this.taskElement).children('.content__taskdone').toggleClass('content__taskdone--false content__taskdone--true');
     }
 
+    updateTaskImportance(taskImportance){
+        $(this.taskElement).children('.content__taskimportance')
+        .toggleClass('content__taskimportance--low', taskImportance == 1)
+        .toggleClass('content__taskimportance--medium', taskImportance == 2)
+        .toggleClass('content__taskimportance--high', taskImportance == 3);
+    }
+    //#endregion
+
     //#region Converters
-    fromTaskModel(taskModel) {
+    updateTaskHTMLElement() {
         $(this.taskElement).children('.content__taskname').val(taskModel.name);
         $(this.taskElement).children('.content__taskmenu').children('.content__taskdescription').val(taskModel.description);
 
-        let importanceCSSClass = '';
-        switch (taskModel.importance) {
-            case 1:
-                importanceCSSClass = 'content__taskimportance--low';
-                break;
-            case 2:
-                importanceCSSClass = 'content__taskimportance--medium';
-                break;
-            case 3:
-                importanceCSSClass = 'content__taskimportance--high';
-                break;
-            default:
-                throw new Error(`Importance for taskObject ${taskModel.id} could not be assigned.`);
-        }
-        $(this.taskElement).children('.content__taskimportance').addClass(importanceCSSClass);
+        $(this.taskElement).children('.content__taskimportance')
+        .toggleClass('content__taskimportance--low', taskModel.importance == 1)
+        .toggleClass('content__taskimportance--medium', taskModel.importance == 2)
+        .toggleClass('content__taskimportance--high', taskModel.importance == 3);
 
         $(this.taskElement).children('.content__taskdone').addClass(taskModel.isDone ? 'content__taskdone--true' : 'content__taskdone--false');
 
@@ -174,9 +185,11 @@ class TaskSubView {
         else {
             $(this.taskElement).children('.content__taskmenu').children('.content__taskedit').addClass('content__taskedit--startedit');
         }
+
+        return this.taskElement;
     }
 
-    toTaskModel() {
+    updateTaskModel() {
         this.taskModel.name = $(this.taskElement).children('.content__taskname').val();
         this.taskModel.description = $(this.taskElement).children('.content__taskmenu').children('.content__taskdescription').val();
 

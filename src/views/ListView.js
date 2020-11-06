@@ -104,6 +104,22 @@ class ListView {
             targetTaskSubview.toggleTaskDoneState();
         })
 
+        $(document).on('click', '.content__taskchanger', (event) => {
+            let newImportance = 0;
+            if($(event.target).hasClass('content__taskimportance--low')){
+                newImportance = 1;
+            }
+            else if ($(event.target).hasClass('content__taskimportance--medium')){
+                newImportance = 2;
+            }
+            else if ($(event.target).hasClass('content__taskimportance--high')){
+                newImportance = 3;
+            }
+
+            let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
+            targetTaskSubview.changeTaskImportance(newImportance);
+        })
+
         //Visual sugar
         $(document).on('input', '.content__taskname', (event) => this.resizeInputField(event.target));
     }

@@ -54,17 +54,24 @@ class TaskController {
 
     changeTaskDoneState(taskID, isDone){
         if(typeof isDone !== 'boolean'){
-            console.error(`Done Parameter must be Boolean.`);
+            console.error(`Done Parameter must be boolean.`);
         }
 
         if(!this.tasks.has(taskID)){
-            console.error(`Cannot change done state of non-existent Task. ID: ${taskID}`);
+            console.error(`Cannot change done state of non-existent Task. ID: ${taskID}.`);
             return;
         }
 
         this.tasks.get(taskID).isDone = true;
 
-        console.log(`Changed done state of Task with ID ${taskID}`);
+        console.log(`Changed done state of Task with ID ${taskID}.`);
+    }
+
+    changeTaskImportance(taskID, importance){
+        //TODO: add input validaton
+        this.tasks.get(taskID).importance = importance;
+
+        console.log(`Changed importance of Task with ID ${taskID}.`);
     }
 }
 

@@ -95,7 +95,7 @@ class ListView {
             let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
             let success = targetTaskSubview.saveNewTask();
 
-            if(success)
+            if (success)
                 this.updateTasklist();
         });
 
@@ -106,13 +106,13 @@ class ListView {
 
         $(document).on('click', '.content__taskchanger', (event) => {
             let newImportance = 0;
-            if($(event.target).hasClass('content__taskimportance--low')){
+            if ($(event.target).hasClass('content__taskimportance--low')) {
                 newImportance = 1;
             }
-            else if ($(event.target).hasClass('content__taskimportance--medium')){
+            else if ($(event.target).hasClass('content__taskimportance--medium')) {
                 newImportance = 2;
             }
-            else if ($(event.target).hasClass('content__taskimportance--high')){
+            else if ($(event.target).hasClass('content__taskimportance--high')) {
                 newImportance = 3;
             }
 

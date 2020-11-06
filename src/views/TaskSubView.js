@@ -103,7 +103,7 @@ class TaskSubView {
     }
 
     changeTaskImportance(newTaskImportance) {
-        if(!newTaskImportance || newTaskImportance < 1 || newTaskImportance > 3){
+        if (!newTaskImportance || newTaskImportance < 1 || newTaskImportance > 3) {
             alert(`Task Importance for task ${this.taskModel.ID} in wrong format.`)
             return false;
         }
@@ -157,25 +157,25 @@ class TaskSubView {
         $(this.taskElement).children('.content__taskdone').toggleClass('content__taskdone--false content__taskdone--true');
     }
 
-    updateTaskImportance(taskImportance){
+    updateTaskImportance(taskImportance) {
         $(this.taskElement).children('.content__taskimportance')
-        .toggleClass('content__taskimportance--low', taskImportance == 1)
-        .toggleClass('content__taskimportance--medium', taskImportance == 2)
-        .toggleClass('content__taskimportance--high', taskImportance == 3);
+            .toggleClass('content__taskimportance--low', taskImportance == 1)
+            .toggleClass('content__taskimportance--medium', taskImportance == 2)
+            .toggleClass('content__taskimportance--high', taskImportance == 3);
     }
     //#endregion
 
     //#region Converters
     updateTaskHTMLElement() {
-        $(this.taskElement).children('.content__taskname').val(taskModel.name);
-        $(this.taskElement).children('.content__taskmenu').children('.content__taskdescription').val(taskModel.description);
+        $(this.taskElement).children('.content__taskname').val(this.taskModel.name);
+        $(this.taskElement).children('.content__taskmenu').children('.content__taskdescription').val(this.taskModel.description);
 
         $(this.taskElement).children('.content__taskimportance')
-        .toggleClass('content__taskimportance--low', taskModel.importance == 1)
-        .toggleClass('content__taskimportance--medium', taskModel.importance == 2)
-        .toggleClass('content__taskimportance--high', taskModel.importance == 3);
+            .toggleClass('content__taskimportance--low', this.taskModel.importance == 1)
+            .toggleClass('content__taskimportance--medium', this.taskModel.importance == 2)
+            .toggleClass('content__taskimportance--high', this.taskModel.importance == 3);
 
-        $(this.taskElement).children('.content__taskdone').addClass(taskModel.isDone ? 'content__taskdone--true' : 'content__taskdone--false');
+        $(this.taskElement).children('.content__taskdone').addClass(this.taskModel.isDone ? 'content__taskdone--true' : 'content__taskdone--false');
 
         if (this.temporaryTask) {
             $(this.taskElement).children('.content__taskmenu').children('.content__taskedit').addClass('content__taskedit--savenew');

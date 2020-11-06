@@ -1,122 +1,65 @@
 import $ from 'jquery';
-import Task from '../models/Task.js'
+import TaskSubView from './TaskSubView.js'
 
 class ListView {
     constructor(taskController) {
         this.taskController = taskController;
-        this.hasTemporaryTask = false;
-
-        this.taskTemplate = $.parseHTML(`
-            <div class='content__task'> 
-                <input type='text' class='content__taskname' placeholder='Task Name' contenteditable=true maxlength='24'/>
-                <span class='content__taskimportance'></span> 
-                <span class='content__taskmenutoggle content__taskmenutoggle--closed'></span>
-                <span class='content__taskdone'></span>
-                <div class='content--clearfloat'></div> 
-                <div class='content__taskmenu' style='display: none;'>
-                    <textarea rows='5' class='content__taskdescription' placeholder='Task Description' contenteditable=true maxlength='240'></textarea>
-                    <div class='content--clearfloat'></div>
-                    <span class='content__taskchanger content__taskimportance--low'></span>
-                    <span class='content__taskchanger content__taskimportance--medium'></span>
-                    <span class='content__taskchanger content__taskimportance--high'></span>
-                    <span class='content__taskdelete'></span>
-                    <span class='content__taskedit'></span>
-                </div>
-            </div>
-            `);
+        this.taskSubViews = [];
 
         this.subscribeToUIEvents();
         this.updateTasklist();
     }
 
-    //#region getter and setter
-    set temporaryTaskExist(exist) {
-        if (typeof exist !== 'boolean')
-            return;
-
-        if (exist)
-            $('.content__addtask').attr('disabled', false);
-        else if (!exist)
-            $('.content__addtask').attr('disabled', true);
-
-        this.hasTemporaryTask = exist;
+    get temporaryTaskExists() {
+        let result = false;
+        this.taskSubViews.forEach(task => {
+            if (task.isTemporaryTask)
+                result = true;
+        })
+        this.toggleAddNewTaskButtonDisabled();
+        return result;
     }
-
-    get temporaryTaskExist() {
-        return this.hasTemporaryTask;
-    }
-    //#endregion
 
     createNewTask() {
-        if (this.temporaryTaskExist)
+        if (this.temporaryTaskExists)
             return;
 
-        //Create Task with default values
-        let defaultTaskTemplate = new Task('', '', 2, false);
-        let defaultTaskTemplateUIElement = this.taskObjectToHTML(defaultTaskTemplate);
-        //Add Save new button
-        $(defaultTaskTemplateUIElement).children('.content__taskmenu').children('.content__taskedit').addClass('content__taskedit--savenew');
-
-        //Subscribe Task to all Task Events
-        this.subscribeTaskToTaskEvents(defaultTaskTemplateUIElement, defaultTaskTemplate.ID);
+        let newTaskSubView = new TaskSubView(this.taskController, null, true);
+        this.taskSubViews.unshift(newTaskSubView); //TODO: Finish temp task creation
 
         //Add to beginning of ListView
-        $('.content__tasklist').prepend(defaultTaskTemplateUIElement);
-        $('.content__tasklist').children('.content__task').first().children('.content__taskmenutoggle').trigger('click');
+        $('.content__tasklist').prepend(newTaskSubView.htmlElement);
+        newTaskSubView.toggleTaskMenu();
 
-        this.temporaryTaskExist = true;
-    }
-
-    toggleTaskMenu(target) {
-        $(target).siblings('.content__taskmenu').slideToggle('slow');
-        $(target).toggleClass('content__taskmenutoggle--closed content__taskmenutoggle--open');
-    }
-
-    toggleEditingButtons(target) {
-        //Toggle Start Edit button and Save Changes button
-        $(target).toggleClass('content__taskedit--startedit content__taskedit--saveedit');
-    }
-
-    toggleEditing(target) {
-        const targetTask = $(target).parent('.content__taskmenu').parent('.content__task');
-
-        //Toggle Editing for text fields
-        if ($(target).hasClass('content__taskedit--startedit')) {
-            $(targetTask).children('.content__taskname').attr('disabled', true);
-            $(targetTask).children('.content__taskmenu').children('.content__taskdescription').attr('disabled', true);
-        }
-        else if ($(target).hasClass('content__taskedit--saveedit')) {
-            $(targetTask).children('.content__taskname').attr('disabled', false);
-            $(targetTask).children('.content__taskmenu').children('.content__taskdescription').attr('disabled', false);
-        }
-    }
-
-    toggleSaveButtonState(target) {
-        const targetTask = $(target).parent('.content__taskmenu').parent('.content__task');
-
-        $(targetTask).children('.content__taskname').attr('disabled', true);
-        $(targetTask).children('.content__taskmenu').children('.content__taskdescription').attr('disabled', true);
-
-        //Remove "new" status from target task subview
-        $(target).removeClass('content__taskedit--savenew');
-        $(target).addClass('content__taskedit--startedit');
+        this.toggleAddNewTaskButtonDisabled();
     }
 
     updateTasklist() {
         //Clear current tasks from list
         $('.content__tasklist').empty();
+        this.taskSubViews.splice(0, this.taskSubViews.length);
 
         //Create HTML Node for every saved task
         this.taskController.getAllSavedTasks().forEach(task => {
-            let taskFromList = this.taskObjectToHTML(task);
-            //Add Editing button for task
-            $(taskFromList).children('.content__taskmenu').children('.content__taskedit').addClass('content__taskedit--startedit');
-            this.toggleEditing($(taskFromList).children('.content__taskmenu').children('.content__taskedit'));
-
-            this.subscribeTaskToTaskEvents(taskFromList, task.ID);
-
-            $('.content__tasklist').prepend(taskFromList);
+            console.log('tasks from list: ' + task.ID)
+            let savedTask = new TaskSubView(this.taskController, task, false);
+            this.taskSubViews.push(savedTask);
         });
+
+        //TODO: Add sorting before appending
+        //Display all task subviews
+        this.taskSubViews.forEach(task => {
+            $('.content__tasklist').append(task.htmlElement);
+        })
+
+        if (!this.temporaryTaskExists)
+            this.toggleAddNewTaskButtonDisabled();
+    }
+
+    toggleAddNewTaskButtonDisabled() {
+        $('.content__addtask').attr('disabled', (index, attr) => {
+            return attr == 'disabled' ? false : 'disabled';
+        })
     }
 
     //#region Events and Event Helpers
@@ -126,142 +69,44 @@ class ListView {
         $('.content__addtask').on('click', () => this.createNewTask());
 
         //Taskmenu Toggling Event
-        $(document).on('click', '.content__taskmenutoggle', (event) => this.toggleTaskMenu(event.target));
+        $(document).on('click', '.content__taskmenutoggle', (event) => {
+            let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__task').index()];
+            targetTaskSubview.toggleTaskMenu();
+        });
 
         //Delete Button Events
-        $(document).on('click', '.content__taskdelete', (event) => $(event.target).triggerHandler('discardDeleteTask'));
+        $(document).on('click', '.content__taskdelete', (event) => {
+            let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
+            targetTaskSubview.deleteTask();
+            this.updateTasklist();
+        });
 
         //Edit Button Events
-        $(document).on('click', '.content__taskedit--startedit', (event) => {
-            this.toggleEditingButtons(event.target);
-            this.toggleEditing(event.target);
+        $(document).on('click', '.content__taskedit--startedit', (event) => {   //TODO: maybe change to event
+            let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
+            targetTaskSubview.toggleEditingButtons();
+            targetTaskSubview.toggleEditing();
         });
         $(document).on('click', '.content__taskedit--saveedit', (event) => {
-            $(event.target).triggerHandler('saveTaskChanges');
-            this.toggleEditingButtons(event.target);
-            this.toggleEditing(event.target);
+            let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
+            targetTaskSubview.saveTaskChanges();
         });
         $(document).on('click', '.content__taskedit--savenew', (event) => {
-            $(event.target).triggerHandler('saveNewTask');
+            let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
+            let success = targetTaskSubview.saveNewTask();
+
+            if(success)
+                this.updateTasklist();
         });
+
+        $(document).on('click', '.content__taskdone', (event) => {
+            let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__task').index()];
+            targetTaskSubview.toggleTaskDoneState();
+        })
 
         //Visual sugar
         $(document).on('input', '.content__taskname', (event) => this.resizeInputField(event.target));
     }
-
-    subscribeTaskToTaskEvents(taskHTMLElement, originalTaskID) {
-        this.subscribeTaskToSaveNewTaskEvent(taskHTMLElement, originalTaskID);
-        this.subscribeTaskToSaveTaskChangesEvent(taskHTMLElement, originalTaskID);
-        this.subscribeTaskToDeleteTaskEvent(taskHTMLElement, originalTaskID);
-    }
-
-    subscribeTaskToSaveNewTaskEvent(taskHTMLElement, originalTaskID) {
-        $(taskHTMLElement).children('.content__taskmenu').children('.content__taskedit').on('saveNewTask', (event) => {
-            let targetTaskView = $(event.target).parent('.content__taskmenu').parent('.content__task');
-            let saveTaskModel = this.taskObjectFromHTML(targetTaskView);
-            saveTaskModel.ID = originalTaskID;
-
-            //TODO: Better Input validation => (Controller)
-            if (saveTaskModel.name == null || saveTaskModel.name == '') {
-                alert('Task Name cannot be empty');
-                return;
-            }
-
-            this.taskController.saveNewTask(saveTaskModel);
-            this.toggleSaveButtonState(taskHTMLElement)
-
-            //On Reloading tasks, unsaved tasks will be deleted automatically
-            this.temporaryTaskExist = false;
-            //Refresh task list
-            this.updateTasklist();
-        });
-    }
-
-    subscribeTaskToSaveTaskChangesEvent(taskHTMLElement, originalTaskID) {
-        $(taskHTMLElement).children('.content__taskmenu').children('.content__taskedit').on('saveTaskChanges', (event) => {
-            let targetTaskView = $(event.target).parent('.content__taskmenu').parent('.content__task');
-            let saveTaskModel = this.taskObjectFromHTML(targetTaskView);
-            let editedTask = new Task(saveTaskModel.name, saveTaskModel.description, saveTaskModel.importance, saveTaskModel.isDone, originalTaskID);
-
-            if (editedTask.name == null || editedTask.name == '') {
-                alert('Task Name cannot be empty');
-                return;
-            }
-
-            this.taskController.saveTaskChanges(editedTask);
-        })
-    }
-
-    subscribeTaskToDeleteTaskEvent(taskHTMLElement, originalTaskID) {
-        $(taskHTMLElement).children('.content__taskmenu').children('.content__taskdelete').on('discardDeleteTask', (event) => {
-            let targetTask = $(event.target).parent('.content__taskmenu').parent('.content__task');
-
-            if (!this.hasTemporaryTask) //Only send deletion request to controller if task isn't a temporary (UI only) one
-                this.taskController.deleteTask(originalTaskID);
-            if ($(event.target).siblings('.content__taskedit').hasClass('content__taskedit--savenew'))
-                this.temporaryTaskExist = false;
-
-            //Delete Visual Element of task
-            $(targetTask).remove();
-        });
-    }
-    //#endregion
-
-    //#region Converters
-    /**
-     * Fills Task Object's information into a Task Template
-     * @param {Task} taskObject 
-     * @returns {string} Filled Task Template
-     */
-    taskObjectToHTML(taskObject) {
-        let filledTaskTemplate = $(this.taskTemplate).clone();
-        $(filledTaskTemplate).children('.content__taskname').val(taskObject.name);
-        $(filledTaskTemplate).children('.content__taskmenu').children('.content__taskdescription').val(taskObject.description);
-
-        let importanceCSSClass = '';
-        switch (taskObject.importance) {
-            case 1:
-                importanceCSSClass = 'content__taskimportance--low';
-                break;
-            case 2:
-                importanceCSSClass = 'content__taskimportance--medium';
-                break;
-            case 3:
-                importanceCSSClass = 'content__taskimportance--high';
-                break;
-            default:
-                throw new Error(`Importance for taskObject ${taskName} could not be assigned.`);
-        }
-        $(filledTaskTemplate).children('.content__taskimportance').addClass(importanceCSSClass);
-
-        $(filledTaskTemplate).children('.content__taskdone').addClass(taskObject.isDone ? 'content__taskdone--true' : 'content__taskdone--false');
-
-        return $(filledTaskTemplate);
-    }
-
-    taskObjectFromHTML(taskHTML) {
-        let taskName, taskDescription, taskImportance, taskIsDone;
-        taskName = $(taskHTML).children('.content__taskname').val();
-        taskDescription = $(taskHTML).children('.content__taskmenu').children('.content__taskdescription').val();
-
-        if ($(taskHTML).children('.content__taskimportance').hasClass('content__taskimportance--low')) {
-            taskImportance = 1;
-        }
-        else if ($(taskHTML).children('.content__taskimportance').hasClass('content__taskimportance--medium')) {
-            taskImportance = 2;
-        }
-        else if ($(taskHTML).children('.content__taskimportance').hasClass('content__taskimportance--high')) {
-            taskImportance = 3;
-        }
-        else {
-            throw new Error(`Importance for taskObject ${taskName} could not be retrieved.`);
-        }
-
-        $(taskHTML).children('.content__taskdone').hasClass('content__taskdone--true') ? taskIsDone = true : taskIsDone = false;
-
-        return new Task(taskName, taskDescription, taskImportance, taskIsDone);
-    }
-    //#endregion
 
     //Visual sugar
     resizeInputField(target) {

@@ -50,7 +50,7 @@ class Task {
     }
 
     set isDone(done) {
-        this.isDone = done;
+        this.taskIsDone = done;
     }
 
     get ID() {

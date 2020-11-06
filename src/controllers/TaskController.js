@@ -51,6 +51,21 @@ class TaskController {
 
         console.log(`Deleted Task with ID ${taskID}.`);
     }
+
+    changeTaskDoneState(taskID, isDone){
+        if(typeof isDone !== 'boolean'){
+            console.error(`Done Parameter must be Boolean.`);
+        }
+
+        if(!this.tasks.has(taskID)){
+            console.error(`Cannot change done state of non-existent Task. ID: ${taskID}`);
+            return;
+        }
+
+        this.tasks.get(taskID).isDone = true;
+
+        console.log(`Changed done state of Task with ID ${taskID}`);
+    }
 }
 
 export default TaskController;

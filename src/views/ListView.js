@@ -25,7 +25,7 @@ class ListView {
             return;
 
         let newTaskSubView = new TaskSubView(this.taskController, null, true);
-        this.taskSubViews.unshift(newTaskSubView); //TODO: Finish temp task creation
+        this.taskSubViews.unshift(newTaskSubView);
 
         //Add to beginning of ListView
         $('.content__tasklist').prepend(newTaskSubView.htmlElement);
@@ -41,12 +41,12 @@ class ListView {
 
         //Create HTML Node for every saved task
         this.taskController.getAllSavedTasks().forEach(task => {
-            console.log('tasks from list: ' + task.ID)
             let savedTask = new TaskSubView(this.taskController, task, false);
             this.taskSubViews.push(savedTask);
         });
 
         //TODO: Add sorting before appending
+        this.taskSubViews = this.sortTaskSubviewsByImportance(this.taskSubViews);
         //Display all task subviews
         this.taskSubViews.forEach(task => {
             $('.content__tasklist').append(task.htmlElement);
@@ -54,6 +54,32 @@ class ListView {
 
         if (!this.temporaryTaskExists)
             this.toggleAddNewTaskButtonDisabled();
+    }
+
+    sortTaskSubviewsByImportance(taskSubViews){
+        let doneTasks = [];
+        let notDoneTasks = [];
+
+        taskSubViews.forEach(task => {
+            if(task.taskModel.isDone)
+                doneTasks.push(task);
+            else
+                notDoneTasks.push(task);
+        })
+
+        doneTasks.sort((a, b) => {
+            return b.taskModel.importance - a.taskModel.importance;
+        })
+
+        notDoneTasks.sort((a, b) => {
+            return b.taskModel.importance - a.taskModel.importance;
+        })
+
+        console.dir(`Not done Tasks: ${notDoneTasks.length}`);
+        console.dir(`Done Tasks: ${doneTasks.length}`);
+
+        taskSubViews = [...notDoneTasks, ...doneTasks];
+        return taskSubViews;
     }
 
     toggleAddNewTaskButtonDisabled() {
@@ -89,7 +115,9 @@ class ListView {
         });
         $(document).on('click', '.content__taskedit--saveedit', (event) => {
             let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
-            targetTaskSubview.saveTaskChanges();
+            let success = targetTaskSubview.saveTaskChanges();
+            if(success)
+                this.updateTasklist();
         });
         $(document).on('click', '.content__taskedit--savenew', (event) => {
             let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
@@ -101,7 +129,9 @@ class ListView {
 
         $(document).on('click', '.content__taskdone', (event) => {
             let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__task').index()];
-            targetTaskSubview.toggleTaskDoneState();
+            let success = targetTaskSubview.toggleTaskDoneState();
+            if(success)
+                this.updateTasklist();
         })
 
         $(document).on('click', '.content__taskchanger', (event) => {
@@ -117,7 +147,9 @@ class ListView {
             }
 
             let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
-            targetTaskSubview.changeTaskImportance(newImportance);
+            let success = targetTaskSubview.changeTaskImportance(newImportance);
+            if(success)
+                this.updateTasklist();
         })
 
         //Visual sugar

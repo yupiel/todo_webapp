@@ -32,7 +32,6 @@ class TaskSubView {
         else {
             //Initialize Task with default Values
             this.taskModel = new Task('', '', 2, false);
-            console.log('no task passed');
             this.updateTaskHTMLElement(this.taskModel);
         }
     }
@@ -95,8 +94,11 @@ class TaskSubView {
     }
 
     toggleTaskDoneState() {
-        if (!this.temporaryTask)
+        if (!this.temporaryTask){
+            console.log(`current done state ${this.taskModel.isDone}`);
+            console.log(`new done state ${!this.taskModel.isDone}`);
             this.taskController.changeTaskDoneState(this.taskModel.ID, !this.taskModel.isDone);
+        }
 
         this.toggleDoneButtonState();
         return true;
@@ -110,8 +112,11 @@ class TaskSubView {
 
         this.taskModel.importance = newTaskImportance;
         this.updateTaskImportance(newTaskImportance);
-        this.taskController.changeTaskImportance(this.taskModel.ID, this.taskModel.importance);
-        return true;
+        if(!this.temporaryTask){
+            this.taskController.changeTaskImportance(this.taskModel.ID, this.taskModel.importance);
+            return true;
+        }
+        return false;
     }
     //#endregion
 

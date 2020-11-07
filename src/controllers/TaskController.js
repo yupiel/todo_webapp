@@ -62,13 +62,17 @@ class TaskController {
             return;
         }
 
-        this.tasks.get(taskID).isDone = true;
+        this.tasks.get(taskID).isDone = isDone;
 
         console.log(`Changed done state of Task with ID ${taskID}.`);
     }
 
     changeTaskImportance(taskID, importance) {
-        //TODO: add input validaton
+        if (!this.tasks.has(taskID)) {
+            console.error(`Cannot change done state of non-existent Task. ID: ${taskID}.`);
+            return;
+        }
+
         this.tasks.get(taskID).importance = importance;
 
         console.log(`Changed importance of Task with ID ${taskID}.`);

@@ -48,7 +48,6 @@ class ListView {
         this.taskSubViews = this.sortTaskSubviewsByImportance(this.taskSubViews);
         //Display all task subviews
         this.taskSubViews.forEach(task => {
-            console.log(task.taskModel);
             $('.content__tasklist').append(task.htmlElement);
         })
 

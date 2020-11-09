@@ -14,6 +14,10 @@ class TaskStorage {
         console.log(`Retrieving all saved tasks from localstorage.`);
         let tasks = new Map();
         let keys = Object.keys(this.taskStorage);
+
+        if(keys.indexOf("loglevel:webpack-dev-server"))
+            keys.splice(keys.indexOf("loglevel:webpack-dev-server"), 1);    //Remove webpack dev server key
+
         for (let i = keys.length - 1; i >= 0; i--) {
             let item = this.taskStorage.getItem(keys[i]);
             let taskInfo = JSON.parse(item);
@@ -25,7 +29,6 @@ class TaskStorage {
 
     saveOverwriteTask(task) {
         this.taskStorage.setItem(task.ID, JSON.stringify(task));
-        console.log(JSON.stringify(task));
         console.log(`Saved task with ID ${task.ID} to localStorage.`);
     }
 

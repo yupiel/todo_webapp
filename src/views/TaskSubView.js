@@ -94,7 +94,7 @@ class TaskSubView {
     }
 
     toggleTaskDoneState() {
-        if (!this.temporaryTask){
+        if (!this.temporaryTask) {
             console.log(`current done state ${this.taskModel.isDone}`);
             console.log(`new done state ${!this.taskModel.isDone}`);
             this.taskController.changeTaskDoneState(this.taskModel.ID, !this.taskModel.isDone);
@@ -112,7 +112,7 @@ class TaskSubView {
 
         this.taskModel.importance = newTaskImportance;
         this.updateTaskImportance(newTaskImportance);
-        if(!this.temporaryTask){
+        if (!this.temporaryTask) {
             this.taskController.changeTaskImportance(this.taskModel.ID, this.taskModel.importance);
             return true;
         }

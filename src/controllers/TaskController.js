@@ -3,7 +3,9 @@ import Task from '../models/Task';
 
 class TaskController {
     constructor(tasks) {
-        this.tasks = tasks;
+        this.storage = tasks;
+        this.tasks = tasks.loadSavedTasks();
+        console.log(this.tasks);
     }
 
     getAllSavedTasks() {
@@ -26,6 +28,7 @@ class TaskController {
         }
 
         this.tasks.set(task.ID, task);
+        this.storage.saveOverwriteTask(task);
 
         console.log(`Saved Task with ID ${task.ID} as new.`);
     }
@@ -37,6 +40,7 @@ class TaskController {
         }
 
         this.tasks.set(task.ID, task);
+        this.storage.saveOverwriteTask(task)
 
         console.log(`Edited Task with ID ${task.ID}.`);
     }
@@ -48,6 +52,7 @@ class TaskController {
         }
 
         this.tasks.delete(taskID)
+        this.storage.deleteTask(taskID);
 
         console.log(`Deleted Task with ID ${taskID}.`);
     }
@@ -63,6 +68,7 @@ class TaskController {
         }
 
         this.tasks.get(taskID).isDone = isDone;
+        this.storage.saveOverwriteTask(this.tasks.get(taskID));
 
         console.log(`Changed done state of Task with ID ${taskID}.`);
     }
@@ -74,6 +80,7 @@ class TaskController {
         }
 
         this.tasks.get(taskID).importance = importance;
+        this.storage.saveOverwriteTask(this.tasks.get(taskID));
 
         console.log(`Changed importance of Task with ID ${taskID}.`);
     }

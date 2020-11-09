@@ -6,13 +6,11 @@ import Task from './models/Task.js';
 import ListView from './views/ListView.js';
 import TaskController from './controllers/TaskController.js';
 
-import taskStorage from './models/TaskStorage';
+import TaskStorage from './models/TaskStorage';
 
 $(function () {
-    //Adding testing task
-    let newTask = new Task('Test Task', 'Test Description', 3, true);
-    taskStorage.set(newTask.ID, newTask);
+    let storage = new TaskStorage();
 
-    let controller = new TaskController(taskStorage);
+    let controller = new TaskController(storage);
     let listView = new ListView(controller);
 })

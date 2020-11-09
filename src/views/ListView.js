@@ -45,10 +45,10 @@ class ListView {
             this.taskSubViews.push(savedTask);
         });
 
-        //TODO: Add sorting before appending
         this.taskSubViews = this.sortTaskSubviewsByImportance(this.taskSubViews);
         //Display all task subviews
         this.taskSubViews.forEach(task => {
+            console.log(task.taskModel);
             $('.content__tasklist').append(task.htmlElement);
         })
 
@@ -56,12 +56,12 @@ class ListView {
             this.toggleAddNewTaskButtonDisabled();
     }
 
-    sortTaskSubviewsByImportance(taskSubViews){
+    sortTaskSubviewsByImportance(taskSubViews) {
         let doneTasks = [];
         let notDoneTasks = [];
 
         taskSubViews.forEach(task => {
-            if(task.taskModel.isDone)
+            if (task.taskModel.isDone)
                 doneTasks.push(task);
             else
                 notDoneTasks.push(task);
@@ -116,7 +116,7 @@ class ListView {
         $(document).on('click', '.content__taskedit--saveedit', (event) => {
             let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
             let success = targetTaskSubview.saveTaskChanges();
-            if(success)
+            if (success)
                 this.updateTasklist();
         });
         $(document).on('click', '.content__taskedit--savenew', (event) => {
@@ -130,7 +130,7 @@ class ListView {
         $(document).on('click', '.content__taskdone', (event) => {
             let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__task').index()];
             let success = targetTaskSubview.toggleTaskDoneState();
-            if(success)
+            if (success)
                 this.updateTasklist();
         })
 
@@ -148,7 +148,7 @@ class ListView {
 
             let targetTaskSubview = this.taskSubViews[$(event.target).parent('.content__taskmenu').parent('.content__task').index()];
             let success = targetTaskSubview.changeTaskImportance(newImportance);
-            if(success)
+            if (success)
                 this.updateTasklist();
         })
 

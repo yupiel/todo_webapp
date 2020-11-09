@@ -15,14 +15,16 @@ class TaskStorage {
         let tasks = new Map();
         let keys = Object.keys(this.taskStorage);
 
-        if(keys.indexOf("loglevel:webpack-dev-server"))
-            keys.splice(keys.indexOf("loglevel:webpack-dev-server"), 1);    //Remove webpack dev server key
-
-        for (let i = keys.length - 1; i >= 0; i--) {
-            let item = this.taskStorage.getItem(keys[i]);
-            let taskInfo = JSON.parse(item);
-            //Convert tasks parsed JSON to Task Object
-            tasks.set(keys[i], new Task(taskInfo.taskName, taskInfo.taskDescription, taskInfo.taskImportance, taskInfo.taskIsDone, taskInfo.taskID));
+        for (let i = 0; i < keys.length; i++) {
+            try {
+                let item = this.taskStorage.getItem(keys[i]);
+                let taskInfo = JSON.parse(item);
+                //Convert tasks parsed JSON to Task Object
+                tasks.set(keys[i], new Task(taskInfo.taskName, taskInfo.taskDescription, taskInfo.taskImportance, taskInfo.taskIsDone, taskInfo.taskID));
+            } catch (e) {
+                console.error("Could not parse task", e);
+            }
+            
         }
         return tasks;
     }
